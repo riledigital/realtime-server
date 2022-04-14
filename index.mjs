@@ -1,44 +1,37 @@
-import {
-  Server,
-  Socket,
-  Transport,
-  transports,
-  listen,
-  attach,
-  parser,
-  protocol,
-} from "engine.io";
-
+import { createServer } from "http";
+import { Server } from "socket.io";
 import {
   uniqueNamesGenerator,
   adjectives,
   colors,
 } from "unique-names-generator";
 
+const httpServer = createServer();
+const io = new Server(httpServer, {
+  // options
+});
+
 // How often to send ticks
 const UPDATE_INTERVAL = 5000;
 const PORT = 80;
 
-const server = listen(PORT);
 console.log("Realtime server started on port:", PORT);
-// Model: a map of all clients by ID
-const clientPositions = new Map();
-// const clientNames = new Map();
 
-// A set of all clients
+// Model: a map of all clients by ID
 const clients = new Map();
 
-server.on("connection", (socket) => {
+io.on("connection", (socket) => {
   // Generate a name
   const { id } = socket;
-  console.log("Connected:", id);
+  const displayName = generateNewName();
   // Keep track of all IDs we have
   clients.add(id);
   // Generate and store displayName
   if (!clients.get(id)) {
     clients.set(id, new Map());
   }
-  clients.get(id).set("displayName", generateNewName());
+  clients.get(id).set("displayName", displayName);
+  console.log("Connected:", displayName, id);
 
   socket.on("mouseUpdate", (args) => {
     const { id } = socket;
@@ -64,7 +57,7 @@ server.on("connection", (socket) => {
 const intervalId = setInterval(() => {
   console.log("Sending update...");
   // Emit updates for each
-  server.emit("tick", [
+  io.emit("tick", [
     [...clients.keys()].map((key) =>
       Object.fromEntries(clients.get(key).entries())
     ),
@@ -81,3 +74,5 @@ function generateNewName() {
     separator: " ",
   });
 }
+
+httpServer.listen(PORT);
