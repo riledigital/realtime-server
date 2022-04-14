@@ -1,4 +1,13 @@
-import engine from "engine.io";
+import {
+  Server,
+  Socket,
+  Transport,
+  transports,
+  listen,
+  attach,
+  parser,
+  protocol,
+} from "engine.io";
 
 import {
   uniqueNamesGenerator,
@@ -8,8 +17,10 @@ import {
 
 // How often to send ticks
 const UPDATE_INTERVAL = 5000;
-const server = engine.listen(80);
+const PORT = 80;
 
+const server = listen(PORT);
+console.log("Realtime server started on port:", PORT);
 // Model: a map of all clients by ID
 const clientPositions = new Map();
 // const clientNames = new Map();
@@ -51,9 +62,12 @@ server.on("connection", (socket) => {
 // mousemove
 // Update: emit regular state throttled to 12fps
 const intervalId = setInterval(() => {
+  console.log("Sending update...");
   // Emit updates for each
   server.emit("tick", [
-    clients.keys().map((key) => Object.fromEntries(clients.get(key).entries())),
+    [...clients.keys()].map((key) =>
+      Object.fromEntries(clients.get(key).entries())
+    ),
   ]);
 }, UPDATE_INTERVAL);
 
