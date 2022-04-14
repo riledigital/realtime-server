@@ -25,13 +25,12 @@ io.on("connection", (socket) => {
   const { id } = socket;
   const displayName = generateNewName();
   // Keep track of all IDs we have
-  clients.add(id);
   // Generate and store displayName
-  if (!clients.get(id)) {
-    clients.set(id, new Map());
-  }
-  clients.get(id).set("displayName", displayName);
+  const clientMeta = new Map();
+  clientMeta.set("id", id);
+  clientMeta.set("displayName", displayName);
   console.log("Connected:", displayName, id);
+  clients.set(id, clientMeta);
 
   socket.on("mouseUpdate", (args) => {
     const { id } = socket;
@@ -45,7 +44,6 @@ io.on("connection", (socket) => {
 
   socket.on("disconnect", (reason) => {
     console.log(`Disconnected.`, reason);
-
     //   Cleanup:
     clients.delete(id);
   });
