@@ -8,7 +8,10 @@ import {
 
 const httpServer = createServer();
 const io = new Server(httpServer, {
-  // options
+  cors: {
+    origin: [/localhost$/, /riledigital.com$/],
+    methods: ["GET", "POST"],
+  },
 });
 
 // How often to send ticks
@@ -16,6 +19,7 @@ const UPDATE_INTERVAL = 5000;
 const PORT = 80;
 
 console.log("Realtime server started on port:", PORT);
+console.log("options:", { UPDATE_INTERVAL, PORT });
 
 // Model: a map of all clients by ID
 const clients = new Map();
