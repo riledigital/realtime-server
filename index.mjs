@@ -9,13 +9,13 @@ import {
 const httpServer = createServer();
 const io = new Server(httpServer, {
   cors: {
-    origin: [/localhost$/, /riledigital.com$/],
+    origin: [/localhost:(\d)+$/, /riledigital.com$/],
     methods: ["GET", "POST"],
   },
 });
 
 // How often to send ticks
-const UPDATE_INTERVAL = 5000;
+const UPDATE_INTERVAL = 60;
 const PORT = 80;
 
 console.log("Realtime server started on port:", PORT);
@@ -36,20 +36,21 @@ io.on("connection", (socket) => {
   console.log("Connected:", displayName, id);
   clients.set(id, clientMeta);
 
+  // Send the displayName to the client...
+  socket.emit("getDisplayName", { displayName });
+
   socket.on("mouseUpdate", (args) => {
     const { id } = socket;
-    // Get metadata from mouse and router
-    const { x, y, route, localTime } = args;
+    // Get metadata from mouse and path
+    const { x, y, path, localTime } = args;
 
-    clients
-      .get(id)
-      .set("position", { id, displayName, x, y, route, localTime });
+    clients.get(id).set("position", { id, displayName, x, y, path, localTime });
   });
 
   socket.on("disconnect", (reason) => {
-    console.log(`Disconnected.`, reason);
-    //   Cleanup:
+    console.log(`Disconnected.`, reason, id);
     clients.delete(id);
+    console.log("data:", clients.get(id));
   });
 });
 
@@ -59,11 +60,12 @@ io.on("connection", (socket) => {
 const intervalId = setInterval(() => {
   console.log("Sending update...");
   // Emit updates for each
-  io.emit("tick", [
-    [...clients.keys()].map((key) =>
-      Object.fromEntries(clients.get(key).entries())
-    ),
-  ]);
+  let payload = [...clients.keys()].map((key) =>
+    Object.fromEntries(clients.get(key).entries())
+  );
+  payload = payload.filter((d) => d.position);
+  console.log(payload);
+  io.emit("tick", payload);
 }, UPDATE_INTERVAL);
 
 //
