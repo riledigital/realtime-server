@@ -9,7 +9,7 @@ import {
 const httpServer = createServer();
 const io = new Server(httpServer, {
   cors: {
-    origin: [/localhost:(\d)+$/, /riledigital.com$/, /\.local$/],
+    origin: [/.+localhost:(\d)+/, /riledigital.com$/, /.+local:(\d)+$/],
     methods: ["GET", "POST"],
   },
 });
