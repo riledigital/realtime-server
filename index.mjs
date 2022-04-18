@@ -16,7 +16,7 @@ const io = new Server(httpServer, {
 
 // How often to send ticks
 const UPDATE_INTERVAL = 60;
-const PORT = 80;
+const PORT = process.env.PORT || 3000;
 
 console.log("Realtime server started on port:", PORT);
 console.log("options:", { UPDATE_INTERVAL, PORT });
